@@ -3,43 +3,28 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import PlayerController from "@/components/playerController";
 import MasterController from "@/components/masterController";
 import {useState} from "react";
-
+import RoundActions from "@/components/roundActions";
+import ScreenAgent from "@/components/screenAgent";
+import players from "@/data/players";
+import masters from "@/data/masters";
 
 export default function Home() {
-    const players = [
-        {   name: "Player 1",
-            controller: <PlayerController move={move}/>
-        },
-        {   name: "Player 2",
-            controller: <PlayerController move={move}/>
-        }
-    ];
+    const roundActions = new RoundActions();
 
-    let masters = [
-        {
-            name: "Master 1",
-            controller: <MasterController draw={draw} players={players}/>
-        },
-        {
-            name: "Master 2",
-            controller: <MasterController draw={draw} players={players}/>
-        }
-    ];
+    players[0].controller = <PlayerController move={roundActions.move}/>
+    players[1].controller = <PlayerController move={roundActions.move}/>
+
+    masters[0].controller = <MasterController draw={roundActions.draw} players={players}/>
+    masters[1].controller = <MasterController draw={roundActions.draw} players={players}/>
 
     const [roundMaster, setRoundMaster] = useState(masters[0]);
     const [roundController, setRoundController] = useState(masters[0]);
 
-    function draw(player) {
-        setRoundController(player);
-    }
-
-    function move() {
-        setRoundMaster((prevMaster) => {
-            const newMaster = prevMaster.name === masters[0].name ? masters[1] : masters[0];
-            setRoundController(newMaster);
-            return newMaster;
-        });
-    }
+    roundActions.subscribeAgent(new ScreenAgent({
+        masters, players,
+        roundMaster, setRoundMaster,
+        roundController, setRoundController
+    }));
 
     return (
         <div className="d-flex justify-content-center vh-100 align-items-center">
